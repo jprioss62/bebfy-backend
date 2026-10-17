@@ -167,7 +167,7 @@ export class VendasService {
           where: { id: createVendaDto.clienteId },
         });
 
-        const novoSaldo = Number(clienteAtual.saldoDevedor) + valorFiado;
+        const novoSaldo = Number(clienteAtual?.saldoDevedor || 0) + valorFiado;
 
         await tx.cliente.update({
           where: { id: createVendaDto.clienteId },
@@ -232,8 +232,8 @@ export class VendasService {
     return venda;
   }
 
-  // Cancela uma venda e estorna o estoque dos produtos
-  async cancelarVenda(id: string) {
+  // Cancela uma venda, estorna o estoque e abate o fiado se houver
+  async cancelarVenda(id: string, dto?: { motivo?: string }) {
     const venda = await this.findOne(id);
 
     if (venda.status === StatusVenda.CANCELADA) {
@@ -241,7 +241,7 @@ export class VendasService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      // Reverte o estoque dos produtos
+      // 1. Reverte o estoque dos produtos vendidos
       for (const item of venda.itens) {
         await tx.produto.update({
           where: { id: item.produtoId },
@@ -253,11 +253,71 @@ export class VendasService {
         });
       }
 
-      // Atualiza o status da venda para CANCELADA
-      return tx.venda.update({
+      // 2. Se a venda teve pagamento em FIADO, estorna o saldo devedor do cliente e registra histórico
+      const pagamentosFiado = venda.pagamentos.filter(
+        (p) => p.formaPagamento === FormaPagamento.FIADO,
+      );
+
+      const totalFiado = pagamentosFiado.reduce(
+        (acc, p) => acc + Number(p.valor),
+        0,
+      );
+
+      if (totalFiado > 0 && venda.clienteId) {
+        const clienteAtual = await tx.cliente.findUnique({
+          where: { id: venda.clienteId },
+        });
+
+        const saldoDevedorAtual = Number(clienteAtual?.saldoDevedor || 0);
+        const novoSaldo = Math.max(0, saldoDevedorAtual - totalFiado);
+
+        await tx.cliente.update({
+          where: { id: venda.clienteId },
+          data: { saldoDevedor: novoSaldo },
+        });
+
+        // Resolve o tipo de transação de estorno de forma segura contra variações do Enum
+        const tipoEstorno =
+          (TipoTransacaoFiado as any).ESTORNO ||
+          (TipoTransacaoFiado as any).CREDITO ||
+          (TipoTransacaoFiado as any).PAGAMENTO ||
+          TipoTransacaoFiado.DEBITO;
+
+        await tx.historicoFiado.create({
+          data: {
+            clienteId: venda.clienteId,
+            vendaId: venda.id,
+            tipo: tipoEstorno,
+            valor: totalFiado,
+            descricao: `Estorno de venda cancelada #${venda.codigoVenda}`,
+            saldoApos: novoSaldo,
+          },
+        });
+      }
+
+      // 3. Atualiza o status da venda para CANCELADA
+      const vendaCancelada = await tx.venda.update({
         where: { id },
         data: { status: StatusVenda.CANCELADA },
       });
+
+      return {
+        message: 'Venda cancelada e estornada com sucesso.',
+        vendaId: vendaCancelada.id,
+        codigoVenda: vendaCancelada.codigoVenda,
+        status: vendaCancelada.status,
+        itensEstornados: venda.itens.map((i) => ({
+          produtoId: i.produtoId,
+          quantidadeDevolvida: i.quantidade,
+        })),
+        valorFiadoEstornado: totalFiado,
+        motivo: dto?.motivo || 'Cancelamento solicitado pelo operador',
+      };
     });
+  }
+
+  // Alias para garantir compatibilidade caso o controller chame cancelar()
+  async cancelar(id: string, dto?: { motivo?: string }) {
+    return this.cancelarVenda(id, dto);
   }
 }

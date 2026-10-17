@@ -37,7 +37,7 @@ export class VendasController {
 
   // PATCH /vendas/:id/cancelar -> Cancela a venda e devolve o estoque
   @Patch(':id/cancelar')
-  cancelarVenda(@Param('id') id: string) {
-    return this.vendasService.cancelarVenda(id);
+  cancelar(@Param('id') id: string, @Body() body?: { motivo?: string }) {
+    return this.vendasService.cancelarVenda(id, body);
   }
 }
