@@ -12,6 +12,7 @@ import { FuncionariosModule } from './funcionarios/funcionarios.module';
 import { CaixaModule } from './caixa/caixa.module';
 import { VendasModule } from './vendas/vendas.module';
 import { FornecedoresModule } from './fornecedores/fornecedores.module';
+import { MovimentacoesEstoqueModule } from './movimentacoes-estoque/movimentacoes-estoque.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { FornecedoresModule } from './fornecedores/fornecedores.module';
     CaixaModule,
     VendasModule,
     FornecedoresModule,
+    MovimentacoesEstoqueModule,
   ],
   controllers: [AppController],
   providers: [AppService],
