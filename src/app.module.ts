@@ -12,7 +12,17 @@ import { FuncionariosModule } from './funcionarios/funcionarios.module';
 import { CaixaModule } from './caixa/caixa.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ProdutosModule, CategoriasModule, LotesModule, ClientesModule, FiadosModule, FuncionariosModule, CaixaModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    ProdutosModule,
+    CategoriasModule,
+    LotesModule,
+    ClientesModule,
+    FiadosModule,
+    FuncionariosModule,
+    CaixaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
