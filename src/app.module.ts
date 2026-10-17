@@ -10,6 +10,7 @@ import { ClientesModule } from './clientes/clientes.module';
 import { FiadosModule } from './fiados/fiados.module';
 import { FuncionariosModule } from './funcionarios/funcionarios.module';
 import { CaixaModule } from './caixa/caixa.module';
+import { VendasModule } from './vendas/vendas.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { CaixaModule } from './caixa/caixa.module';
     FiadosModule,
     FuncionariosModule,
     CaixaModule,
+    VendasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

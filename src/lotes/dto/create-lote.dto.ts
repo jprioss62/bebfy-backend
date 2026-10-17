@@ -1,35 +1,31 @@
-// Importamos os validadores do class-validator para validar os dados recebidos na API
 import {
   IsDateString,
   IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  IsPositive,
   IsString,
 } from 'class-validator';
 
 export class CreateLoteDto {
-  // ID do produto ao qual este lote pertence (UUID que faz a relação com a tabela Produto) - Obrigatório
-  @IsString({ message: 'O ID do produto deve ser um texto/UUID válido.' })
+  // ID do produto agora é Int/number
+  @IsInt({ message: 'O ID do produto deve ser um número inteiro.' })
   @IsNotEmpty({ message: 'O ID do produto é obrigatório.' })
-  produtoId: string;
+  produtoId: number;
 
-  // Quantidade de unidades deste lote adicionadas ao estoque - Obrigatório
-  @IsInt({ message: 'A quantidade deve ser um número inteiro.' })
-  @IsNotEmpty({ message: 'A quantidade do lote é obrigatória.' })
+  @IsNumber({}, { message: 'A quantidade deve ser um valor numérico.' })
+  @IsPositive({ message: 'A quantidade deve ser maior que zero.' })
+  @IsNotEmpty({ message: 'A quantidade é obrigatória.' })
   quantidade: number;
 
-  // Código ou número do lote informado pelo fornecedor/fabricante (ex: "LOTE-2026-X") - Opcional
   @IsString({ message: 'O número do lote deve ser um texto.' })
-  @IsOptional()
-  numeroLote?: string;
+  @IsNotEmpty({ message: 'O número do lote é obrigatório.' })
+  numeroLote: string;
 
-  // Data de vencimento/validade do lote no formato ISO "AAAA-MM-DD" - Opcional
   @IsDateString(
     {},
-    {
-      message:
-        'A data de vencimento deve ser uma data válida no formato YYYY-MM-DD.',
-    },
+    { message: 'A data de vencimento deve ser uma data válida.' },
   )
   @IsOptional()
   dataVencimento?: string;

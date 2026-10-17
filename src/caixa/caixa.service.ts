@@ -160,18 +160,12 @@ export class CaixaService {
     });
   }
 
-  // Busca o caixa atualmente aberto de um operador
+  // Busca o caixa atualmente aberto de um operador de forma direta
   async findCaixaAbertoOperador(operadorId: string) {
     const caixa = await this.prisma.caixa.findFirst({
       where: {
         operadorId,
         status: StatusCaixa.ABERTO,
-      },
-      include: {
-        movimentacoes: true,
-        operador: {
-          select: { id: true, nome: true, cargo: true },
-        },
       },
     });
 

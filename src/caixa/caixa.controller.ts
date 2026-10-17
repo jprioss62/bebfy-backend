@@ -32,7 +32,7 @@ export class CaixaController {
     return this.caixaService.fecharCaixa(id, dto);
   }
 
-  // GET /caixa/operador/:operadorId/aberto -> Consulta caixa aberto do operador
+  // GET /caixa/operador/:operadorId/aberto
   @Get('operador/:operadorId/aberto')
   findCaixaAbertoOperador(@Param('operadorId') operadorId: string) {
     return this.caixaService.findCaixaAbertoOperador(operadorId);
